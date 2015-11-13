@@ -45,13 +45,7 @@ class vmManager:
     def __init__(self, VM):
         print(VM)
 
-    def __del__(self):
+    #def __del__(self):
         # remove device mapper mappings
-        check_call([''
+        #check_call([''
 
-#backup = btrfsFileBackup('/mnt/backuphdd/files')
-#backup.rsync('/mnt/windows/daten')
-#backup.rsync('/mnt/windows/Users')
-#backup.rotateSnapshots('monthly')
-
-myvm = vmManager(''
