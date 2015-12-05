@@ -43,7 +43,22 @@ class backup:
 class vmManager:
     
     def __init__(self, VM):
-        print(VM)
+        conn = libvirt.open("qemu:///system")
+        try: self.VM = conn.lookupByName(VM)
+        except libvirt.libvirtError: print('Given VM does not exist or libvirt not running')
+
+    def shutdown(self):
+        while self.VM.state()[0] != libvirt.VIR_DOMAIN_SHUTOFF:
+            self.VM.shutdown()
+    
+    def start(self):
+        self.VM.create()
+
+    def snapshot(self):
+        print('dummy')
+
+    def mount(self):
+        print('dummy')
 
     #def __del__(self):
         # remove device mapper mappings
