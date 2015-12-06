@@ -6,6 +6,8 @@ from subprocess import check_call,CalledProcessError,DEVNULL
 import datetime
 import re
 import libvirt
+from xml.etree import ElementTree as ET
+from time import sleep
 
 class backup:
 
@@ -43,21 +45,39 @@ class backup:
 class vmManager:
     
     def __init__(self, VM):
+        print('Working on virtual maschine '+VM)
         conn = libvirt.open("qemu:///system")
-        try: self.VM = conn.lookupByName(VM)
-        except libvirt.libvirtError: print('Given VM does not exist or libvirt not running')
+        self.VM = conn.lookupByName(VM)
+
+        # get VM disks
+        VMxmlRoot = ET.fromstring(self.VM.XMLDesc(0))
+        XMLsearchResult = VMxmlRoot.find('./devices/disk/source')
+        self.VMdisk = XMLsearchResult.get('file')
+        print(self.VMdisk)
+
+        
+        #try: self.VM = conn.lookupByName(VM)
+        #except libvirt.libvirtError: print('Given VM does not exist or libvirt not running')
 
     def shutdown(self):
         while self.VM.state()[0] != libvirt.VIR_DOMAIN_SHUTOFF:
             self.VM.shutdown()
+            sleep(5)
+
     
     def start(self):
         self.VM.create()
 
     def snapshot(self):
+        self.mount()
         print('dummy')
 
     def mount(self):
+        ## todo: get volume info by api
+        ## moeglich: >>> bla = conn.storageVolLookupByPath('/dev/vhost/devtest')
+        ## bla.name()
+        # oder: domain xml holen und interpretieren
+        check_call(['/sbin/kpartx', '-s', '-a', '/dev/vhost/terminal'])
         print('dummy')
 
     #def __del__(self):
