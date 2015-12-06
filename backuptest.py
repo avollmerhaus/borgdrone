@@ -2,10 +2,10 @@
 
 from vmbackup import backup,vmManager
 
-manager = vmManager('foo')
-manager.shutdown()
-manager.snapshot()
-manager.start()
+manager = vmManager('devtest')
+#manager.shutdown()
+#manager.snapshot()
+#manager.start()
 
 #backup = btrfsFileBackup('/mnt/backuphdd/files')
 #backup.rsync('/mnt/windows/daten')

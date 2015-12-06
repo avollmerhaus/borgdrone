@@ -51,10 +51,16 @@ class vmManager:
 
         # get VM disks
         VMxmlRoot = ET.fromstring(self.VM.XMLDesc(0))
-        XMLsearchResult = VMxmlRoot.find('./devices/disk/source')
-        self.VMdisk = XMLsearchResult.get('file')
-        print(self.VMdisk)
+        XMLsearchResults = VMxmlRoot.findall('./devices/disk/source')
+        ## XMLsearchResult.items()
 
+        for result in XMLsearchResults:
+            #disk = result.get('dev')
+            disk = result.get('file')
+            print(disk)
+
+        #self.VMdisk = XMLsearchResult.get('dev')
+        #print(self.VMdisk)
         
         #try: self.VM = conn.lookupByName(VM)
         #except libvirt.libvirtError: print('Given VM does not exist or libvirt not running')
@@ -64,7 +70,6 @@ class vmManager:
             self.VM.shutdown()
             sleep(5)
 
-    
     def start(self):
         self.VM.create()
 
@@ -73,11 +78,7 @@ class vmManager:
         print('dummy')
 
     def mount(self):
-        ## todo: get volume info by api
-        ## moeglich: >>> bla = conn.storageVolLookupByPath('/dev/vhost/devtest')
-        ## bla.name()
-        # oder: domain xml holen und interpretieren
-        check_call(['/sbin/kpartx', '-s', '-a', '/dev/vhost/terminal'])
+        #check_call(['/sbin/kpartx', '-s', '-a', self.VMdisk])
         print('dummy')
 
     #def __del__(self):
