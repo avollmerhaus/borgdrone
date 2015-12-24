@@ -3,6 +3,8 @@
 from vmbackup import backup,vmManager
 
 manager = vmManager('devtest')
+
+manager.searchAndMount('/dev/vhost/devtest', 2)
 #manager.shutdown()
 #manager.snapshot()
 #manager.start()

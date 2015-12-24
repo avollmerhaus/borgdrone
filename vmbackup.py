@@ -49,21 +49,29 @@ class vmManager:
         conn = libvirt.open("qemu:///system")
         self.VM = conn.lookupByName(VM)
 
-        # get VM disks
-        VMxmlRoot = ET.fromstring(self.VM.XMLDesc(0))
-        XMLsearchResults = VMxmlRoot.findall('./devices/disk/source')
-        ## XMLsearchResult.items()
-
-        for result in XMLsearchResults:
-            #disk = result.get('dev')
-            disk = result.get('file')
-            print(disk)
-
+       
         #self.VMdisk = XMLsearchResult.get('dev')
         #print(self.VMdisk)
         
         #try: self.VM = conn.lookupByName(VM)
         #except libvirt.libvirtError: print('Given VM does not exist or libvirt not running')
+
+    def searchAndMount(self, sourceDisk, sourcePartition):
+        
+        # get VM disks
+        VMxmlRoot = ET.fromstring(self.VM.XMLDesc(0))
+        XMLsearchResults = VMxmlRoot.findall('./devices/disk/source')
+        ## XMLsearchResult.items()
+        
+        disks = []
+        for result in XMLsearchResults:
+            disk = result.get('dev')
+            disk = result.get('file')
+            disks.append(disk)
+
+        for disk in disks:
+            print(disk)
+  
 
     def shutdown(self):
         while self.VM.state()[0] != libvirt.VIR_DOMAIN_SHUTOFF:
@@ -74,12 +82,12 @@ class vmManager:
         self.VM.create()
 
     def snapshot(self):
+        raise NotImplementedError
         self.mount()
-        print('dummy')
 
     def mount(self):
+        raise NotImplementedError
         #check_call(['/sbin/kpartx', '-s', '-a', self.VMdisk])
-        print('dummy')
 
     #def __del__(self):
         # remove device mapper mappings
