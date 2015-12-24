@@ -49,25 +49,25 @@ class vmManager:
         conn = libvirt.open("qemu:///system")
         self.VM = conn.lookupByName(VM)
 
-       
-        #self.VMdisk = XMLsearchResult.get('dev')
-        #print(self.VMdisk)
-        
-        #try: self.VM = conn.lookupByName(VM)
-        #except libvirt.libvirtError: print('Given VM does not exist or libvirt not running')
-
     def searchAndMount(self, sourceDisk, sourcePartition):
         
         # get VM disks
         VMxmlRoot = ET.fromstring(self.VM.XMLDesc(0))
         XMLsearchResults = VMxmlRoot.findall('./devices/disk/source')
-        ## XMLsearchResult.items()
         
         disks = []
         for result in XMLsearchResults:
-            disk = result.get('dev')
-            disk = result.get('file')
-            disks.append(disk)
+            for sourceType in ['dev', 'file']:
+                disk = result.get(sourceType)
+                if disk is not None:
+                    disks.append(disk)
+
+            #disk = result.get('dev')
+            #disk = result.get('file')
+            #disks.append(disk)
+
+        if sourceDisk not in disks:
+            raise ValueError('given disk not found in VM domain XML')
 
         for disk in disks:
             print(disk)
