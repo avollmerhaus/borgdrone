@@ -8,8 +8,23 @@ import re
 import libvirt
 from xml.etree import ElementTree as ET
 from time import sleep
+import lxc
 
-class backup:
+# overview:
+# backup all disks of a VM to flat files, rotate flat-file storage using btrfsa
+# use deduplication to remove duplicated data, sys-fs/duperemove or bedup (not in portage?)
+# app-emulation/libguestfs - interesting?
+
+# workflow:
+# extract paths 
+# stop VM
+# take snapshots
+# start VM
+# dump VM config to backup
+# rsync snapshot content over to backup btrfs volume
+# rotate 
+
+class dataManager:
 
     def __init__(self, btrfsvolume):
         self.absoluteTargetVolumePath = btrfsvolume
@@ -39,39 +54,39 @@ class backup:
             raise ValueError('please select monthly or daily for argv[1]')
 
         try: check_call(['/sbin/btrfs', 'subvolume', 'delete', absoluteSnapshotPath], stderr=DEVNULL)
-        except CalledProcessError: print('There was some error removing the snapshot, assuming it does not yet exist')
+        except CalledProcessError: print('There was some error removing the snapshot, assuming it just did not yet exist')
         check_call(['/sbin/btrfs', 'subvolume', 'snapshot', '-r', self.absoluteTargetVolumePath, absoluteSnapshotPath])
 
-class vmManager:
+    def cloneRaw(self, disks):
+        raise NotImplementedError
+        # don't check whether disk is LV or not
+        # we can clone anyway, if that is what the user wants
+        for disk in self.disks:
+            targetFile = disk.split('/')[-1]
+            with
+
+class libvirtManager:
     
     def __init__(self, VM):
         print('Working on virtual maschine '+VM)
         conn = libvirt.open("qemu:///system")
         self.VM = conn.lookupByName(VM)
+        self.VMxml = self.VM.XMLDesc(0)
 
-    def searchAndMount(self, sourceDisk, sourcePartition):
+    def setDisks(self):
+        self.disks = []
         
         # get VM disks
-        VMxmlRoot = ET.fromstring(self.VM.XMLDesc(0))
-        XMLsearchResults = VMxmlRoot.findall('./devices/disk/source')
-        
-        disks = []
+        XMLobj = ET.fromstring(self.VMxml)
+        XMLsearchResults = XMLobj.findall('./devices/disk/source')
+       
+        # domain xml differs between LVM LVs and raw files
         for result in XMLsearchResults:
             for sourceType in ['dev', 'file']:
                 disk = result.get(sourceType)
                 if disk is not None:
-                    disks.append(disk)
+                    self.disks.append(disk)
 
-            #disk = result.get('dev')
-            #disk = result.get('file')
-            #disks.append(disk)
-
-        if sourceDisk not in disks:
-            raise ValueError('given disk not found in VM domain XML')
-
-        for disk in disks:
-            print(disk)
-  
 
     def shutdown(self):
         while self.VM.state()[0] != libvirt.VIR_DOMAIN_SHUTOFF:
@@ -83,13 +98,33 @@ class vmManager:
 
     def snapshot(self):
         raise NotImplementedError
-        self.mount()
-
-    def mount(self):
+        for disk in self.disks
+        item['filename'] = item['URL'].split('/')[-1]
+    
+    def dumpXML(self):
         raise NotImplementedError
-        #check_call(['/sbin/kpartx', '-s', '-a', self.VMdisk])
+        with
 
-    #def __del__(self):
-        # remove device mapper mappings
-        #check_call([''
+class lxcManager:
 
+    # https://www.stgraber.org/2014/02/05/lxc-1-0-scripting-with-the-api/
+
+    def __init__(self, container):
+        raise NotImplementedError
+        assert(container in lxc.list_containers()), 'Given container not found via LXC API'
+        self.container = lxc.Container(container)
+
+    def shutdown(self):
+        raise NotImplementedError
+        self.container.shutdown(timeout=360)
+        assert(self.container.state == 'STOPPED'), 'Container refused to stop'
+    
+    def start(self):
+        raise NotImplementedError
+        self.container.start()
+    
+    def snapshot(self):
+        raise NotImplementedError
+
+    def copyConfig(self):
+        raise NotImplementedError
