@@ -74,13 +74,8 @@ class libvirtManager:
         self.VM = conn.lookupByName(VM)
         self.VMxml = self.VM.XMLDesc(0)
 
-<<<<<<< HEAD
     def diskFinder(self):
-=======
-    def setDisks(self):
->>>>>>> c3c9e245b4b233c27c9234fb587635dc1b3b2f14
         self.disks = []
-        
         # get VM disks
         XMLobj = ET.fromstring(self.VMxml)
         XMLsearchResults = XMLobj.findall('./devices/disk/source')
@@ -103,29 +98,17 @@ class libvirtManager:
 
     def snapshot(self):
         raise NotImplementedError
-<<<<<<< HEAD
         for disk in self.disks:
             assert(stat.S_ISBLK(os.stat('/dev/tty').st_mode)), 'disk is not a blockdevice'
 
         item['filename'] = item['URL'].split('/')[-1]
-
-=======
-        for disk in self.disks
-        item['filename'] = item['URL'].split('/')[-1]
->>>>>>> c3c9e245b4b233c27c9234fb587635dc1b3b2f14
     
     def dumpXML(self):
         raise NotImplementedError
         with
-<<<<<<< HEAD
 
 class lxcManager:
 
-=======
-
-class lxcManager:
-
->>>>>>> c3c9e245b4b233c27c9234fb587635dc1b3b2f14
     # https://www.stgraber.org/2014/02/05/lxc-1-0-scripting-with-the-api/
 
     def __init__(self, container):
