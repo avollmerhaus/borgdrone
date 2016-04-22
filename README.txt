@@ -2,9 +2,9 @@ workflow:
 
 VM an pathfinder der LXC oder kvm class übergeben
 	prüft ob vm vorhanden
-		returned liste der pfade
 
-liste der geräte an snapshotCreate funktion übergeben
+snapshotCreate funktion aufrufen
+	holt liste der disk-pfade über diskFinder
 	fährt VM runter
 		snapshot jedes elements
 		start VM
