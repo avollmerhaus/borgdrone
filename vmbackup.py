@@ -58,13 +58,13 @@ class dataManager:
         except CalledProcessError: print('There was some error removing the snapshot, assuming it just did not yet exist')
         check_call(['/sbin/btrfs', 'subvolume', 'snapshot', '-r', self.absoluteTargetVolumePath, absoluteSnapshotPath])
 
-    def cloneRaw(self, disks):
+    def cloneBinary(self, disks):
         raise NotImplementedError
         # don't check whether disk is LV or not
         # we can clone anyway, if that is what the user wants
-        for disk in self.disks:
+        for disk in disks:
             targetFile = disk.split('/')[-1]
-            with
+            #with
 
 class libvirtManager:
     
@@ -75,8 +75,9 @@ class libvirtManager:
         self.VMxml = self.VM.XMLDesc(0)
 
     def diskFinder(self):
-        self.disks = []
-        # get VM disks
+        # return all disk paths contained within VM xml
+        disks = []
+
         XMLobj = ET.fromstring(self.VMxml)
         XMLsearchResults = XMLobj.findall('./devices/disk/source')
        
@@ -85,7 +86,8 @@ class libvirtManager:
             for sourceType in ['dev', 'file']:
                 disk = result.get(sourceType)
                 if disk is not None:
-                    self.disks.append(disk)
+                    disks.append(disk)
+        return disks
 
 
     def shutdown(self):
@@ -97,15 +99,21 @@ class libvirtManager:
         self.VM.create()
 
     def snapshot(self):
-        raise NotImplementedError
-        for disk in self.disks:
-            assert(stat.S_ISBLK(os.stat('/dev/tty').st_mode)), 'disk is not a blockdevice'
+        # at the moment we only support LVM. BTRFS gives abysmal performance with COW, and without COW it's useless
+        snapshots = []
+        for disk in self.diskFinder():
+            assert(stat.S_ISBLK(os.stat('/dev/tty').st_mode)), 'disk ' + disk + ' is not a blockdevice, unsupported'
+            snapshotname = disk + '_snap'
+            # actually do the snapshot!
+            snapshots.append(snapshotname)
+        return snapshots
 
-        item['filename'] = item['URL'].split('/')[-1]
+
+        #item['filename'] = item['URL'].split('/')[-1]
     
     def dumpXML(self):
         raise NotImplementedError
-        with
+        #with
 
 class lxcManager:
 
