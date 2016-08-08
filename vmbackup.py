@@ -99,7 +99,7 @@ class libvirtManager:
         self.VM.create()
 
     def snapshot(self):
-        # at the moment we only support LVM. BTRFS gives abysmal performance with COW, and without COW it's useless
+        # at the moment we only support LVM. BTRFS gives abysmal performance even with chattr +C
         snapshots = []
         for disk in self.diskFinder():
             assert(stat.S_ISBLK(os.stat('/dev/tty').st_mode)), 'disk ' + disk + ' is not a blockdevice, unsupported'
