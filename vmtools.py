@@ -25,7 +25,7 @@ import lxc
 # rsync snapshot content over to backup btrfs volume
 # rotate 
 
-class dataManager:
+class backupTool:
 
     def __init__(self, btrfsvolume):
         self.absoluteTargetVolumePath = btrfsvolume
@@ -63,10 +63,10 @@ class dataManager:
         # don't check whether disk is LV or not
         # we can clone anyway, if that is what the user wants
         for disk in disks:
-            targetFile = disk.split('/')[-1]
+            targetFile = disk.split('/')[-1] # use os.path?
             #with
 
-class libvirtManager:
+class libvirtTool:
     
     def __init__(self, VM):
         print('Working on virtual maschine '+VM)
@@ -91,6 +91,7 @@ class libvirtManager:
 
 
     def shutdown(self):
+        # todo: determine shutdown mode via capabilities, agent vs. acpi
         while self.VM.state()[0] != libvirt.VIR_DOMAIN_SHUTOFF:
             self.VM.shutdown()
             sleep(5)
@@ -115,7 +116,7 @@ class libvirtManager:
         raise NotImplementedError
         #with
 
-class lxcManager:
+class lxcTool:
 
     # https://www.stgraber.org/2014/02/05/lxc-1-0-scripting-with-the-api/
 
