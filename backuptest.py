@@ -1,18 +1,24 @@
 #!/usr/bin/env python3
 
-from vmbackup import backup,vmManager
+from vmtools import libvirttool, lvmtool, borgtool
 
-manager = vmManager('devtest')
+# workflow:
+# get VM disks via libvirtmanager.diskfinder
+# freeze VM via libvirtmanager.freeze
+# create snapshots via lvmsnapshots.snapdisks
+# thaw VM
+# start borgbackup via 
 
-#manager.searchAndMount('/dev/vhost/devtest', 2)
-manager.setDisk(sourceDisk='/dev/vhost/devtest2')
-#manager.setupMappings()
-#manager.shutdown()
-#manager.snapshot()
-#manager.start()
+def dumpVM(VMname):
+    handyman = libvirttool(VM)
+    disks = handyman.diskfinder()
+    print(disks)
+    lvmtool.snapdisks(disks)
+    
+    
 
-#backup = btrfsFileBackup('/mnt/backuphdd/files')
-#backup.rsync('/mnt/windows/daten')
-#backup.rsync('/mnt/windows/Users')
-#backup.rotateSnapshots('monthly')
+VMs = ['sunman']
+
+for VM in VMs:
+    dumpVM(VM)
 
