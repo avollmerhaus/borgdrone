@@ -38,7 +38,7 @@ class lvmtool:
         for disk in disks:
             lvname = os.path.basename(disk)
             vgname = os.path.split(os.path.dirname(disk))[1]
-            snapname = lvname + '_tmp' + str(os.getpid())
+            snapname = lvname + '_snap' + str(os.getpid())
             try: check_call(['/sbin/lvm', 'lvcreate', '-s', '-L20g', '-n', snapname, os.path.join(vgname, lvname)])
             except CalledProcessError as err: print('could not create lvm snapshot:', err)
             snapshots.append(os.path.join(os.path.dirname(disk), snapname))
