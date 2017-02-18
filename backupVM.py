@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
-from vmtools import libvirttool, lvmtool, borgtool
+from vHandyman import libvirttool, borgtool
+from vHandyman.lvmtool import lvmtool
+
 
 # workflow:
 # get VM disks via libvirtmanager.diskfinder
@@ -10,15 +12,11 @@ from vmtools import libvirttool, lvmtool, borgtool
 # start borgbackup via 
 
 def dumpVM(VMname):
-    handyman = libvirttool(VM)
-    disks = handyman.diskfinder()
-    print(disks)
+    worker = libvirttool.libvirttool(VMname)
+    disks = worker.diskfinder()
     lvmtool.snapdisks(disks)
-    
-    
 
 VMs = ['sunman']
-
 for VM in VMs:
     dumpVM(VM)
 
