@@ -1,4 +1,4 @@
-Backup VMs or container via Borg
+Backup VMs or containers via Borg
 ===
 
 Use Borgs `--read-special` to backup LVM snapshots and VM metadata (like libvirt XML description).

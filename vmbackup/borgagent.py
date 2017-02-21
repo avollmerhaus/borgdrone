@@ -22,6 +22,7 @@ def borgprune(backupname):
     commandline.append('--keep-daily=1')
     commandline.append('--keep-weekly=1')
     commandline.append('--keep-monthly=1')
-    commandline.append('--prefix')
+    commandline.append('--prefix='+backupname)
+    print(commandline)
 
     #--keep-daily=1 --keep-weekly=1 --keep-monthly=1 --dry-run --prefix='vhost5_trac.tegelen.naskorsports.com' 
