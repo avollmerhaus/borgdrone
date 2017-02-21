@@ -2,24 +2,41 @@
 
 from vHandyman.libvirttool import libvirttool
 from vHandyman.lvmtool import lvmtool
-from vHandyman.borgtool import borgtool
+from vHandyman.borgtool import borgcreate
+from os import remove
 
+# todo: introduce some kind of switch to determine mode (freeze or shutdown)
 
-# workflow:
-# get VM disks via libvirtmanager.diskfinder
-# freeze VM via libvirtmanager.freeze
-# create snapshots via lvmsnapshots.snapdisks
-# thaw VM
-# start borgbackup via 
+def dumpVM(repo, VMname):
+    backupname = repo + VMname
+    sourcepaths = []
 
-def dumpVM(VMname):
-    worker = libvirttool(VMname)
-    disks = worker.diskfinder()
-    worker.shutdownVM()
-    lvmtool.snapdisks(disks)
-    worker.startVM()
+    virtworker = libvirttool(VMname)
+    lvmworker = lvmtool()
 
-VMs = ['sunman']
+    # find and snapshot all VM disks
+    disks = virtworker.diskfinder()
+    #virtworker.shutdownVM()
+    virtworker.fsFreeze()
+    snaps = lvmworker.snapdisks(disks)
+    #worker.startVM()
+    virtworker.fsThaw()
+    sourcepaths.extend(snaps)
+    
+    # prepare VM xml definition to be included in backup
+    domxmlfile = virtworker.dumpXML()
+    sourcepaths.append(domxmlfile)
+
+    # call borg to do the backup
+    borgcreate(backupname=backupname, sourcepaths=sourcepaths)
+
+    # clean up
+    lvmworker.removesnaps()
+    remove(domxmlfile)
+
+VMs = ['trac.tegelen.naskorsports.com']
+repo = 'ssh://locutus@cube.tegelen.naskorsports.com/zroot/borg/backups::{hostname}_'
+
 for VM in VMs:
-    dumpVM(VM)
+    dumpVM(repo=repo, VMname=VM)
 

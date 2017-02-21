@@ -1,16 +1,17 @@
-class borgtool:
+from subprocess import check_call,CalledProcessError,DEVNULL
+from datetime import datetime
 
-    from subprocess import check_call,CalledProcessError,DEVNULL
-    
-    def borgcreate(self, repo, sourcepaths):
-        raise NotImplementedError
-        commandline = []
-        commandline.append('/usr/bin/borg')
-        commandline.append('--read-special')
-        commandline.append('--compression')
-        commandline.append('lz4')
-        commandline.append(repo)
-        commandline.append(sourcepaths) #unpack this?
-        try: check_command(commandline)
-        except CalledProcessError as err: print('error running borg', err)
+def borgcreate(backupname, sourcepaths):
+    backupname = backupname + datetime.now().strftime('%Y.%j-%H.%M')
+    #print('backup', sourcepaths, 'to', backupname)
+    commandline = []
+    commandline.append('/usr/bin/borg')
+    commandline.append('create')
+    commandline.append('--read-special')
+    commandline.append('--compression')
+    commandline.append('lz4')
+    commandline.append(backupname)
+    commandline.extend(sourcepaths)
+    try: check_call(commandline)
+    except CalledProcessError as err: print('error running borg', err)
 
