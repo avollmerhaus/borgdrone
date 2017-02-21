@@ -2,6 +2,9 @@ import libvirt
 from xml.etree import ElementTree as ET
 from time import sleep
 
+# Todo:
+# implement snapshot function that freezes, thaws and calls lvm or other snapshot providers automatically
+
 class libvirttool:
 
     def __init__(self, VMname):
@@ -25,12 +28,20 @@ class libvirttool:
                     disks.append(disk)
         return disks
     
-    def shutdown(self):
+    def shutdownACPI(self):
         # todo: make this private, only call from freeze
         # when some flag true and freeze fails
         while self.VM.state()[0] != libvirt.VIR_DOMAIN_SHUTOFF:
             self.VM.shutdown()
             sleep(5)
+
+    def shutdownVM(self):
+        try: self.VM.shutdownFlags(libvirt.VIR_DOMAIN_SHUTDOWN_GUEST_AGENT | libvirt.VIR_DOMAIN_SHUTDOWN_ACPI_POWER_BTN)
+        except libvirtError as err: print('unable to shutdown VM:', err)
+
+    def startVM(self):
+        try: self.VM.create()
+        except libvirtError as err: print('unable to start VM:', err)
 
     def freezeVM(self):
         self.VM.fsFreeze()

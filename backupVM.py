@@ -15,7 +15,9 @@ from vHandyman.borgtool import borgtool
 def dumpVM(VMname):
     worker = libvirttool(VMname)
     disks = worker.diskfinder()
+    worker.shutdownVM()
     lvmtool.snapdisks(disks)
+    worker.startVM()
 
 VMs = ['sunman']
 for VM in VMs:
