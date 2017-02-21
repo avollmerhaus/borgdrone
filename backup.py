@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from vmbackup.libvirtagent import libvirtagent
-from vmbackup.lvmagent import lvmagent
+from vmbackup.lvmagent import snapdisks,removesnaps
 from vmbackup.borgagent import borgcreate
 from os import remove
 from sys import exit
@@ -12,13 +12,12 @@ def dumpVM(repo, VMname):
     sourcepaths = []
 
     virtdrone = libvirtagent(VMname)
-    lvmdrone = lvmagent()
 
     # find and snapshot all VM disks
     disks = virtdrone.diskfinder()
     #virtdrone.shutdownVM()
     virtdrone.fsFreeze()
-    snaps = lvmdrone.snapdisks(disks)
+    snaps = snapdisks(disks)
     #drone.startVM()
     virtdrone.fsThaw()
     sourcepaths.extend(snaps)
@@ -31,7 +30,7 @@ def dumpVM(repo, VMname):
     #borgcreate(backupname=backupname, sourcepaths=sourcepaths)
 
     # clean up
-    lvmdrone.removesnaps()
+    removesnaps()
     remove(domxmlfile)
 
 #VMs = ['trac.tegelen.naskorsports.com']

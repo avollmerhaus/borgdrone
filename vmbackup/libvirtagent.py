@@ -6,7 +6,7 @@ from tempfile import NamedTemporaryFile
 # Todo:
 # implement snapshot function that freezes, thaws and calls lvm or other snapshot providers automatically
 
-class libvirttool:
+class libvirtagent:
 
     def __init__(self, VMname):
         print('Working on virtual maschine '+VMname)
