@@ -22,7 +22,7 @@ def dumpVM(repo, VMname):
     #drone.startVM()
     virtdrone.fsThaw()
     sourcepaths.extend(snaps)
-    
+
     # prepare VM xml definition to be included in backup
     domxmlfile = virtdrone.dumpXML()
     sourcepaths.append(domxmlfile)
@@ -51,5 +51,5 @@ elif args.type[0] == 'kvm':
     repo = sub('/$', '', args.repo[0])
     repo = repo + '::{hostname}_'
     for source in args.sources:
-        #dumpVM(args.repo[0], VM)
-        print(repo, source)
+        dumpVM(args.repo[0], VM)
+        #print(repo, source)
