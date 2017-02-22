@@ -8,9 +8,12 @@ from sys import exit
 from re import sub
 import argparse
 import logging
+from datetime import datetime
 
-def dump_and_prune(repo, VMname, shutdown):
-    backupname = repo + VMname
+def dump_and_prune(repository, VMname, shutdown):
+    # remove trailing slashes, borg can't deal with /repo/::backupname
+    repository = sub('/$', '', repository)
+    backupname = repo + '::{hostname}_' + VMname + datetime.now().strftime('%Y.%j-%H.%M')
     sourcepaths = []
     virtdrone = libvirtagent(VMname)
     # find and snapshot all VM disks, shutting down or freezing VMs for the action
@@ -33,7 +36,7 @@ def dump_and_prune(repo, VMname, shutdown):
     # clean up
     removesnaps(snaps)
     remove(domxmlfile)
-    borgprune(backupname=backupname)
+    borgprune(repository=repository)
 
 #VMs = ['trac.tegelen.naskorsports.com']
 #repo = 'ssh://locutus@cube.tegelen.naskorsports.com/zroot/borg/backups::{hostname}_'
@@ -61,14 +64,10 @@ failedSources = []
 if args.type[0] == 'lxc':
     logger.warn('LXC is not implemented yet')
 elif args.type[0] == 'kvm':
-    # remove trailing slashes, add hostname to repository
-    repo = sub('/$', '', args.repo[0])
-    repo = repo + '::{hostname}_'
     for source in args.sources:
-        logger.debug('repo: '+repo+' source: '+source)
+        logger.debug('args say: repo: '+repo+' source: '+source)
         try:
-            dump_and_prune(repo=repo, VMname=source, shutdown=args.shutdown)
-            prune
+            dump_and_prune(repository=args.repo[0], VMname=source, shutdown=args.shutdown)
         except RuntimeError:
             logger.error('Backup or cleanup failed for VM: '+source)
             failedSources.append(source)
