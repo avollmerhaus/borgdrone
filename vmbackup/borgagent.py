@@ -1,6 +1,7 @@
 from subprocess import check_call,CalledProcessError,DEVNULL
 from os import environ
 import logging
+from datetime import datetime
 
 logger = logging.getLogger('vmbackup.borgagent')
 
@@ -9,7 +10,8 @@ logger = logging.getLogger('vmbackup.borgagent')
 borgenv = environ
 borgenv['BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK'] = 'yes'
 
-def borgcreate(backupname, sourcepaths):
+def borgcreate(repository, VMname, sourcepaths):
+    backupname = repository + '::{hostname}_' + VMname + '_' + datetime.now().strftime('%Y.%j-%H.%M')
     commandline = []
     commandline.append('/usr/bin/borg')
     commandline.append('create')
@@ -25,7 +27,9 @@ def borgcreate(backupname, sourcepaths):
             logger.error('error running borg: '+str(err))
             raise RuntimeError
 
-def borgprune(backupbase, repository):
+def borgprune(VMname, repository):
+    #prune can't deal with ::{hostname}
+    pruneprefix = '{hostname}_' + VMname
     commandline = []
     commandline.append('/usr/bin/borg')
     commandline.append('prune')
@@ -37,7 +41,7 @@ def borgprune(backupbase, repository):
     commandline.append('--keep-monthly=-1')
     # for every year within the last 2 years
     commandline.append('--keep-yearly=2')
-    commandline.append('--prefix='+backupbase)
+    commandline.append('--prefix='+pruneprefix)
     commandline.append(repository)
     logger.debug('trying to call borg, commandline: '+str(commandline))
     try:

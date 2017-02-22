@@ -8,14 +8,13 @@ from sys import exit
 from re import sub
 import argparse
 import logging
-from datetime import datetime
+from socket import gethostname
 
 def dump_and_prune(repository, VMname, shutdown):
     # remove trailing slashes, borg can't deal with /repo/::backupname
     repository = sub('/$', '', repository)
-    backupbase = repository + '::{hostname}_' + VMname
-    backupname = backupbase + datetime.now().strftime('%Y.%j-%H.%M')
     sourcepaths = []
+
     virtdrone = libvirtagent(VMname)
     # find and snapshot all VM disks, shutting down or freezing VMs for the action
     disks = virtdrone.diskfinder()
@@ -33,13 +32,13 @@ def dump_and_prune(repository, VMname, shutdown):
     domxmlfile = virtdrone.dumpXML()
     sourcepaths.append(domxmlfile)
     # call borg to do the backup
-    borgcreate(backupname=backupname, sourcepaths=sourcepaths)
+    borgcreate(VMname=VMname, repository=repository, sourcepaths=sourcepaths)
     # clean up
     removesnaps(snaps)
     remove(domxmlfile)
-    borgprune(backupbase=backupbase, repository=repository)
+    borgprune(VMname=VMname, repository=repository)
 
-parser = argparse.ArgumentParser(description='Opinionated Backup for VMs or containers via Borg. At the moment we only support libvirt/kvm on LVM.\
+parser = argparse.ArgumentParser(description='Opinionated wrapper to backup VMs or containers via Borg. At the moment we only support libvirt/kvm on LVM.\
 Containers and flat files may be supported sometime in the future. Example: backup.py --repo ssh:///user@borg.example.com/backuphdd/borg --type kvm --sources myVM --shutdown')
 parser.add_argument('--repo', metavar='repo', type=str, nargs=1, required=True, help='Target Borg repository. We automatically prefix backup names using client hostname, source name and timestamp.')
 parser.add_argument('--type', metavar='type', type=str, nargs=1, required=True, choices=['lxc','kvm'], help='virtualization type, must be kvm or lxc')

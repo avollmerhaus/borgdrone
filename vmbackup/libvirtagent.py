@@ -74,6 +74,7 @@ class libvirtagent:
         except libvirt.libvirtError as err:
             self.logger.error('failed to freeze FS '+str(err))
             raise RuntimeError
+        # catch specific qemu agent fail here
 
     def fsThaw(self):
         try:
