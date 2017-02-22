@@ -72,7 +72,7 @@ class libvirtagent:
             self.logger.debug('freezing FS...')
             self.VM.fsFreeze()
         except libvirt.libvirtError as err:
-            self.logger.error('failed to freeze FS'+str(err))
+            self.logger.error('failed to freeze FS '+str(err))
             raise RuntimeError
 
     def fsThaw(self):

@@ -25,7 +25,7 @@ def borgcreate(backupname, sourcepaths):
             logger.error('error running borg: '+str(err))
             raise RuntimeError
 
-def borgprune(repository, backupname):
+def borgprune(backupbase, repository):
     commandline = []
     commandline.append('/usr/bin/borg')
     commandline.append('prune')
@@ -37,14 +37,11 @@ def borgprune(repository, backupname):
     commandline.append('--keep-monthly=-1')
     # for every year within the last 2 years
     commandline.append('--keep-yearly=2')
-    commandline.append('--prefix='+backupname)
+    commandline.append('--prefix='+backupbase)
     commandline.append(repository)
     logger.debug('trying to call borg, commandline: '+str(commandline))
     try:
         check_call(commandline, env=borgenv)
-        pass
     except CalledProcessError as err:
         logger.error('error running borg: '+str(err))
         raise RuntimeError
-
-    #--keep-daily=1 --keep-weekly=1 --keep-monthly=1 --dry-run --prefix='vhost5_trac.tegelen.naskorsports.com'

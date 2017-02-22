@@ -13,7 +13,8 @@ from datetime import datetime
 def dump_and_prune(repository, VMname, shutdown):
     # remove trailing slashes, borg can't deal with /repo/::backupname
     repository = sub('/$', '', repository)
-    backupname = repo + '::{hostname}_' + VMname + datetime.now().strftime('%Y.%j-%H.%M')
+    backupbase = repository + '::{hostname}_' + VMname
+    backupname = backupbase + datetime.now().strftime('%Y.%j-%H.%M')
     sourcepaths = []
     virtdrone = libvirtagent(VMname)
     # find and snapshot all VM disks, shutting down or freezing VMs for the action
@@ -36,19 +37,15 @@ def dump_and_prune(repository, VMname, shutdown):
     # clean up
     removesnaps(snaps)
     remove(domxmlfile)
-    borgprune(repository=repository)
+    borgprune(backupbase=backupbase, repository=repository)
 
-#VMs = ['trac.tegelen.naskorsports.com']
-#repo = 'ssh://locutus@cube.tegelen.naskorsports.com/zroot/borg/backups::{hostname}_'
-
-# todo: introduce some kind of switch to determine mode (freeze or shutdown)
-# todo: incorporate repo and VM examples in --help
-parser = argparse.ArgumentParser(description='Opinionated Backup for VMs or containers via Borg. At the moment we only support libvirt/kvm on LVM. Containers and flat files may be supported sometime in the future')
-parser.add_argument('--repo', metavar='repo', type=str, nargs=1, help='Target Borg repository. We automatically prefix backup names using client hostname, source name and timestamp.', required=True)
-parser.add_argument('--type', metavar='type', type=str, nargs=1, help='virtualization type, must be kvm or lxc', required=True, choices=['lxc','kvm'])
-parser.add_argument('--sources', metavar='sources', nargs='+', help='Names of KVM machines or containers to backup', required=True)
-parser.add_argument('--shutdown', dest='shutdown', action='store_true', help='Shtudown sources for snapshotting (we try to freeze the guest FS via guest-agent otherwise)', default=False)
-parser.add_argument('--debug', dest='debug', action='store_true', help='Activate debugging output', default=False)
+parser = argparse.ArgumentParser(description='Opinionated Backup for VMs or containers via Borg. At the moment we only support libvirt/kvm on LVM.\
+Containers and flat files may be supported sometime in the future. Example: backup.py --repo ssh:///user@borg.example.com/backuphdd/borg --type kvm --sources myVM --shutdown')
+parser.add_argument('--repo', metavar='repo', type=str, nargs=1, required=True, help='Target Borg repository. We automatically prefix backup names using client hostname, source name and timestamp.')
+parser.add_argument('--type', metavar='type', type=str, nargs=1, required=True, choices=['lxc','kvm'], help='virtualization type, must be kvm or lxc')
+parser.add_argument('--sources', metavar='sources', nargs='+', required=True, help='Names of KVM machines or containers to backup')
+parser.add_argument('--shutdown', dest='shutdown', action='store_true', default=False, help='Shtudown sources for snapshotting (we try to freeze the guest FS via guest-agent otherwise)')
+parser.add_argument('--debug', dest='debug', action='store_true', default=False, help='Activate debugging output')
 args = parser.parse_args()
 
 logger = logging.getLogger('vmbackup')
@@ -65,7 +62,7 @@ if args.type[0] == 'lxc':
     logger.warn('LXC is not implemented yet')
 elif args.type[0] == 'kvm':
     for source in args.sources:
-        logger.debug('args say: repo: '+repo+' source: '+source)
+        logger.debug('args say: repo: '+args.repo[0]+' source: '+source)
         try:
             dump_and_prune(repository=args.repo[0], VMname=source, shutdown=args.shutdown)
         except RuntimeError:
