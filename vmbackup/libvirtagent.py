@@ -17,7 +17,7 @@ class libvirtagent:
             conn = libvirt.open("qemu:///system")
             self.VM = conn.lookupByName(VMname)
         except libvirt.libvirtError as err:
-            self.logger.error('failed to initialize libvirt connection for'+VMname+str(err))
+            self.logger.error('failed to initialize libvirt connection, '+str(err))
             raise RuntimeError
         self.logger.debug('connected to libvirtd and selected VM')
 
@@ -36,50 +36,57 @@ class libvirtagent:
             self.logger.error('found no virtual disks for machine')
             raise RuntimeError
         else:
-            self.logger.debug('libvirtagent found virtual disk sources:'+str(disks))
+            self.logger.debug('libvirtagent found virtual disk sources: '+str(disks))
             return disks
 
-    def shutdownACPI(self):
+    def shutdownVM(self, timeout):
         # todo: make this private, only call from freeze
         # when some flag true and freeze fails
-        while self.VM.state()[0] != libvirt.VIR_DOMAIN_SHUTOFF:
-            self.VM.shutdown()
-            sleep(5)
-
-    def shutdownVM(self):
-        try: self.VM.shutdownFlags(libvirt.VIR_DOMAIN_SHUTDOWN_GUEST_AGENT | libvirt.VIR_DOMAIN_SHUTDOWN_ACPI_POWER_BTN)
+        try:
+            self.VM.shutdownFlags(libvirt.VIR_DOMAIN_SHUTDOWN_GUEST_AGENT | libvirt.VIR_DOMAIN_SHUTDOWN_ACPI_POWER_BTN)
         except libvirt.libvirtError as err:
-            self.logger.error()
-            exit('unable to shutdown VM:', err)
-        while self.VM.state()[0] != libvirt.VIR_DOMAIN_SHUTOFF:
-            sleep(5)
+            self.logger.error('libvirt unable to shutdown VM:'+str(err))
+            raise RuntimeError
+        else:
+            while self.VM.state()[0] != libvirt.VIR_DOMAIN_SHUTOFF:
+                timeout -= 1
+                sleep(1)
+                if timeout is 0:
+                    self.logger.error('timeout while waiting to shutdown VM')
+                    raise RuntimeError
+                    break
 
     def startVM(self):
         try:
-            print('libvirtagent: trying to start VM')
             self.VM.create()
+            self.logger.debug('VM started')
         except libvirt.libvirtError as err:
-            print('unable to start VM', err)
+            self.logger.error('failed to start VM'+str(err))
+            raise RuntimeError
 
     def fsFreeze(self):
         # it seems to be perfectly normal for snapshots of XFS devices to require recovery when created this way
         # see "man xfs_freeze", from google it seems a lot of people just use it and don't care.
         # tested for ntfs, seems to produce snapshots marked as "clean"
         try:
-            print('libvirtagent: trying to freeze VM')
+            self.logger.debug('freezing FS...')
             self.VM.fsFreeze()
         except libvirt.libvirtError as err:
-            exit('unable to freeze VM', err)
+            self.logger.error('failed to freeze FS'+str(err))
+            raise RuntimeError
 
     def fsThaw(self):
-        self.logger.info('trying to thaw VM')
         try:
+            self.logger.debug('thawing FS...')
             self.VM.fsThaw()
         except libvirt.libvirtError as err:
-            logger.exception('unable to thaw VM')
+            self.logger.error('failed to thaw FS'+str(err))
+            raise RuntimeError
 
     def dumpXML(self):
+        self.logger.debug('writing VM XML file')
         xmldump = NamedTemporaryFile(suffix='.xml', delete=False)
         xmldump.write(self.VM.XMLDesc(0).encode(encoding='utf-8'))
         xmldump.flush()
+        self.logger.debug('wrote VM XML file to'+xmldump.name)
         return xmldump.name

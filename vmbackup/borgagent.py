@@ -1,6 +1,9 @@
 from subprocess import check_call,CalledProcessError,DEVNULL
 from os import environ
 from datetime import datetime
+import logging
+
+logger = logging.getLogger('vmbackup.borgagent')
 
 # this is going to be run non-interactively, so make sure the backup runs
 # focus is on resilience
@@ -18,8 +21,12 @@ def borgcreate(backupname, sourcepaths):
     commandline.append('lz4')
     commandline.append(backupname)
     commandline.extend(sourcepaths)
-    try: check_call(commandline, env=borgenv)
-    except CalledProcessError as err: print('error running borg', err)
+    logger.debug('trying to call borg, commandline: '+str(commandline))
+    try:
+        check_call(commandline, env=borgenv)
+    except CalledProcessError as err:
+            logger.error('error running borg: '+str(err))
+            raise RuntimeError
 
 def borgprune(backupname):
     commandline = []
@@ -29,8 +36,12 @@ def borgprune(backupname):
     commandline.append('--keep-weekly=1')
     commandline.append('--keep-monthly=1')
     commandline.append('--prefix='+backupname)
-    try: check_call(commandline, env=borgenv)
-    except CalledProcessError as err: print('error running borg', err)
-    print(commandline)
+    logger.debug('trying to call borg, commandline: '+str(commandline))
+    try:
+        #check_call(commandline, env=borgenv)
+        pass
+    except CalledProcessError as err:
+        logger.error('error running borg: '+str(err))
+        raise RuntimeError
 
-    #--keep-daily=1 --keep-weekly=1 --keep-monthly=1 --dry-run --prefix='vhost5_trac.tegelen.naskorsports.com' 
+    #--keep-daily=1 --keep-weekly=1 --keep-monthly=1 --dry-run --prefix='vhost5_trac.tegelen.naskorsports.com'
