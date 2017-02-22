@@ -4,7 +4,7 @@ from datetime import datetime
 
 # this is going to be run non-interactively, so make sure the backup runs
 # focus is on resilience
-borgenv = os.environ
+borgenv = environ
 borgenv['BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK'] = 'yes'
 
 def borgcreate(backupname, sourcepaths):

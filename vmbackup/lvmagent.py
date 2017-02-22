@@ -12,9 +12,11 @@ def snapdisks(disks):
         try: check_call(['/sbin/lvm', 'lvcreate', '-s', '-L20g', '-n', snapname, os.path.join(vgname, lvname)], stdout=DEVNULL)
         except CalledProcessError as err: print('could not create lvm snapshot:', err)
         snapshots.append(os.path.join(os.path.dirname(disk), snapname))
+    print('lvmagent created snapshots:', *snapshots)
     return snapshots
 
-def removesnaps(snaps):
+def removesnaps(snapshots):
     for snapname in snapshots:
         try: check_call(['/sbin/lvm', 'lvremove', '-f', snapname], stdout=DEVNULL)
         except CalledProcessError as err: print('could not remove lvm snapshot:', err)
+    print('lvmagent removed snapshots:', *snapshots)
