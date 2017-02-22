@@ -8,7 +8,6 @@ from sys import exit
 from re import sub
 import argparse
 import logging
-from socket import gethostname
 
 def dump_and_prune(repository, VMname, shutdown):
     # remove trailing slashes, borg can't deal with /repo/::backupname
