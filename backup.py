@@ -48,6 +48,7 @@ args = parser.parse_args()
 
 logger = logging.getLogger('vmbackup')
 # without config, the logger gets a default config that throws everything below "warning" away
+# calling basicConfig changes this and registers logging.StreamHandler
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 if args.debug:
     logger.setLevel(logging.DEBUG)
