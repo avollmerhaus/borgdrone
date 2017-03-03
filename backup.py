@@ -13,29 +13,35 @@ def dump_and_prune(repository, VMname, shutdown):
     # remove trailing slashes, borg can't deal with /repo/::backupname
     repository = sub('/$', '', repository)
     sourcepaths = []
+    snaps = []
+    domxmlfile = None
 
-    virtdrone = libvirtagent(VMname)
-    # find and snapshot all VM disks, shutting down or freezing VMs for the action
-    disks = virtdrone.diskfinder()
-    if shutdown:
-        virtdrone.shutdownVM(timeout=1800)
-    else:
-        virtdrone.fsFreeze()
-    snaps = snapdisks(disks)
-    if shutdown:
-        virtdrone.startVM()
-    else:
-        virtdrone.fsThaw()
-    sourcepaths.extend(snaps)
-    # prepare VM xml definition to be included in backup
-    domxmlfile = virtdrone.dumpXML()
-    sourcepaths.append(domxmlfile)
-    # call borg to do the backup
-    borgcreate(VMname=VMname, repository=repository, sourcepaths=sourcepaths)
-    # clean up
-    removesnaps(snaps)
-    remove(domxmlfile)
-    borgprune(VMname=VMname, repository=repository)
+    try:
+        virtdrone = libvirtagent(VMname)
+        # find and snapshot all VM disks, shutting down or freezing VMs for the action
+        disks = virtdrone.diskfinder()
+        if shutdown:
+            virtdrone.shutdownVM(timeout=1800)
+        else:
+            virtdrone.fsFreeze()
+        snaps = snapdisks(disks)
+        if shutdown:
+            virtdrone.startVM()
+        else:
+            virtdrone.fsThaw()
+        sourcepaths.extend(snaps)
+        # prepare VM xml definition to be included in backup
+        domxmlfile = virtdrone.dumpXML()
+        sourcepaths.append(domxmlfile)
+        # call borg to do the backup
+        borgcreate(VMname=VMname, repository=repository, sourcepaths=sourcepaths)
+    finally:
+        # clean up
+        if snaps:
+            removesnaps(snaps)
+        if domxmlfile:
+            remove(domxmlfile)
+        borgprune(VMname=VMname, repository=repository)
 
 parser = argparse.ArgumentParser(description='Opinionated wrapper to backup VMs or containers via Borg. At the moment we only support libvirt/kvm on LVM.\
 Containers and flat files may be supported sometime in the future. Example: backup.py --repo ssh:///user@borg.example.com/backuphdd/borg --type kvm --sources myVM --shutdown')
