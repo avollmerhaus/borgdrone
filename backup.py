@@ -13,6 +13,8 @@ def dump_and_prune(repository, VMname, shutdown):
     # remove trailing slashes, borg can't deal with /repo/::backupname
     repository = sub('/$', '', repository)
     sourcepaths = []
+    snaps = []
+    domxmlfile = None
 
     try:
         virtdrone = libvirtagent(VMname)
@@ -35,8 +37,10 @@ def dump_and_prune(repository, VMname, shutdown):
         borgcreate(VMname=VMname, repository=repository, sourcepaths=sourcepaths)
     finally:
         # clean up
-        removesnaps(snaps)
-        remove(domxmlfile)
+        if snaps:
+            removesnaps(snaps)
+        if domxmlfile:
+            remove(domxmlfile)
         borgprune(VMname=VMname, repository=repository)
 
 parser = argparse.ArgumentParser(description='Opinionated wrapper to backup VMs or containers via Borg. At the moment we only support libvirt/kvm on LVM.\
