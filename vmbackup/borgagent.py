@@ -9,6 +9,7 @@ logger = logging.getLogger('vmbackup.borgagent')
 # focus is on resilience
 borgenv = environ
 borgenv['BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK'] = 'yes'
+borgenv['BORG_RELOCATED_REPO_ACCESS_IS_OK'] = 'yes'
 
 def borgcreate(repository, VMname, sourcepaths):
     backupname = repository + '::{hostname}_' + VMname + '_' + datetime.now().strftime('%Y.%j-%H.%M')
