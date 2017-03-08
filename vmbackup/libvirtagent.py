@@ -13,6 +13,7 @@ class libvirtagent:
         # loggers are hierachical using foo.bar notation
         self.logger = logging.getLogger('vmbackup.libvirtagent.'+VMname)
         self.logger.info('Working on virtual maschine '+VMname)
+        libvirt.registerErrorHandler(f=self._libvirt_silence_error, ctx=None)
         try:
             conn = libvirt.open("qemu:///system")
             self.VM = conn.lookupByName(VMname)
@@ -20,6 +21,11 @@ class libvirtagent:
             self.logger.error('failed to initialize libvirt connection, '+str(err))
             raise RuntimeError
         self.logger.debug('connected to libvirtd and selected VM')
+
+    def _libvirt_silence_error(self, err):
+        # Don't log libvirt errors: global error handler will do that
+        if err[3] != libvirt.VIR_ERR_ERROR:
+            self.logger.warn('Non-error from libvirt: ' + err[2])
 
     def diskfinder(self):
         # return all disk backend paths contained within VM xml

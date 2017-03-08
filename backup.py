@@ -4,8 +4,9 @@ from vmbackup.libvirtagent import libvirtagent
 from vmbackup.lvmagent import snapdisks,removesnaps
 from vmbackup.borgagent import borgcreate, borgprune
 from os import remove
-from sys import exit
+from sys import stdout
 from re import sub
+from logging.handlers import SysLogHandler
 import argparse
 import logging
 
@@ -50,17 +51,27 @@ parser.add_argument('--type', metavar='type', type=str, nargs=1, required=True, 
 parser.add_argument('--sources', metavar='sources', nargs='+', required=True, help='Names of KVM machines or containers to backup')
 parser.add_argument('--shutdown', dest='shutdown', action='store_true', default=False, help='Shtudown sources for snapshotting (we try to freeze the guest FS via guest-agent otherwise)')
 parser.add_argument('--debug', dest='debug', action='store_true', default=False, help='Activate debugging output')
+parser.add_argument('--syslog', dest='syslog', action='store_true', default=False, help='Send logs to syslog')
 args = parser.parse_args()
 
 logger = logging.getLogger('vmbackup')
-# without config, the logger gets a default config that throws everything below "warning" away
-# calling basicConfig changes this and registers logging.StreamHandler
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logchannel = logging.StreamHandler(stdout)
+logchannel.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+logger.addHandler(logchannel)
+
 if args.debug:
     logger.setLevel(logging.DEBUG)
     logger.info('Loglevel set to DEBUG')
 else:
     logger.setLevel(logging.INFO)
+
+if args.syslog:
+    logchannel2 = SysLogHandler(address='/dev/log')
+    #logchannel2.setFormatter(logging.Formatter('%(name)s - %(levelname)s - %(message)s'))
+    #logchannel2.setFormatter(logging.Formatter('%(message)s s%(message) s%(message) s%(message) s%(message)s'))
+    logchannel2.setFormatter(logging.Formatter('%(asctime)s vmbackup: %(message)s'))
+    #logchannel2.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+    logger.addHandler(logchannel2)
 
 failedSources = []
 if args.type[0] == 'lxc':
