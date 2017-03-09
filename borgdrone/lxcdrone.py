@@ -1,7 +1,8 @@
-class lxctool:
+import lxc
+
+class lxcdrone:
 
     # https://www.stgraber.org/2014/02/05/lxc-1-0-scripting-with-the-api/
-    import lxc
 
     def __init__(self, container):
         raise NotImplementedError

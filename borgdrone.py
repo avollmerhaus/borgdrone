@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-from vmbackup.libvirtagent import libvirtagent
-from vmbackup.lvmagent import snapdisks,removesnaps
-from vmbackup.borgagent import borgcreate, borgprune
+from borgdrone.libvirtdrone import libvirtdrone
+from borgdrone.lvmdrone import snapdisks,removesnaps
+from borgdrone.borgdrone import borgcreate, borgprune
 from os import remove
 from sys import stdout
 from re import sub
@@ -10,7 +10,7 @@ from logging.handlers import SysLogHandler
 import argparse
 import logging
 
-def dump_and_prune(repository, VMname, shutdown):
+def vm_dump_and_prune(repository, VMname, shutdown):
     # remove trailing slashes, borg can't deal with /repo/::backupname
     repository = sub('/$', '', repository)
     sourcepaths = []
@@ -18,21 +18,21 @@ def dump_and_prune(repository, VMname, shutdown):
     domxmlfile = None
 
     try:
-        virtdrone = libvirtagent(VMname)
+        virtualmachine = libvirtdrone(VMname)
         # find and snapshot all VM disks, shutting down or freezing VMs for the action
-        disks = virtdrone.diskfinder()
+        disks = virtualmachine.diskfinder()
         if shutdown:
-            virtdrone.shutdownVM(timeout=1800)
+            virtualmachine.shutdownVM(timeout=1800)
         else:
-            virtdrone.fsFreeze()
+            virtualmachine.fsFreeze()
         snaps = snapdisks(disks)
         if shutdown:
-            virtdrone.startVM()
+            virtualmachine.startVM()
         else:
-            virtdrone.fsThaw()
+            virtualmachine.fsThaw()
         sourcepaths.extend(snaps)
         # prepare VM xml definition to be included in backup
-        domxmlfile = virtdrone.dumpXML()
+        domxmlfile = virtualmachine.dumpXML()
         sourcepaths.append(domxmlfile)
         # call borg to do the backup
         borgcreate(VMname=VMname, repository=repository, sourcepaths=sourcepaths)
@@ -54,7 +54,7 @@ parser.add_argument('--debug', dest='debug', action='store_true', default=False,
 parser.add_argument('--syslog', dest='syslog', action='store_true', default=False, help='Send logs to syslog')
 args = parser.parse_args()
 
-logger = logging.getLogger('vmbackup')
+logger = logging.getLogger('borgdrone')
 logchannel = logging.StreamHandler(stdout)
 logchannel.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
 logger.addHandler(logchannel)
@@ -67,10 +67,8 @@ else:
 
 if args.syslog:
     logchannel2 = SysLogHandler(address='/dev/log')
-    #logchannel2.setFormatter(logging.Formatter('%(name)s - %(levelname)s - %(message)s'))
-    #logchannel2.setFormatter(logging.Formatter('%(message)s s%(message) s%(message) s%(message) s%(message)s'))
-    logchannel2.setFormatter(logging.Formatter('%(asctime)s vmbackup: %(message)s'))
-    #logchannel2.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+    # i'm not sure why it has to be exactly this format, SysLog seems to be picky
+    logchannel2.setFormatter(logging.Formatter('%(asctime)s borgdrone: %(message)s'))
     logger.addHandler(logchannel2)
 
 failedSources = []
@@ -80,7 +78,7 @@ elif args.type[0] == 'kvm':
     for source in args.sources:
         logger.debug('args say: repo: '+args.repo[0]+' source: '+source)
         try:
-            dump_and_prune(repository=args.repo[0], VMname=source, shutdown=args.shutdown)
+            vm_dump_and_prune(repository=args.repo[0], VMname=source, shutdown=args.shutdown)
         except RuntimeError:
             logger.error('Backup or cleanup failed for VM: '+source)
             failedSources.append(source)

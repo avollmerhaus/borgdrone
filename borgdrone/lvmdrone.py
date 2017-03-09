@@ -5,7 +5,7 @@ import logging
 # Todo: use lvm via it's python bindings
 # https://git.fedorahosted.org/cgit/lvm2.git/tree/python
 
-logger = logging.getLogger('vmbackup.lvmagent')
+logger = logging.getLogger('borgdrone.lvmdrone')
 
 def snapdisks(disks):
     snapshots = []
@@ -21,7 +21,7 @@ def snapdisks(disks):
             logger.error('could not create lvm snapshot: '+str(err))
             raise RuntimeError
         snapshots.append(os.path.join(os.path.dirname(disk), snapname))
-    logger.debug('lvmagent created snapshots: '+str(snapshots))
+    logger.debug('lvmdrone created snapshots: '+str(snapshots))
     return snapshots
 
 def removesnaps(snapshots):
@@ -33,4 +33,4 @@ def removesnaps(snapshots):
         except CalledProcessError as err:
             logger.error('could not create lvm snapshot: '+str(err))
             raise RuntimeError
-    logger.debug('lvmagent removed snapshots: '+str(snapshots))
+    logger.debug('lvmdrone removed snapshots: '+str(snapshots))

@@ -7,11 +7,11 @@ import logging
 # Todo:
 # implement snapshot function that freezes, thaws and calls lvm or other snapshot providers automatically
 
-class libvirtagent:
+class libvirtdrone:
 
     def __init__(self, VMname):
         # loggers are hierachical using foo.bar notation
-        self.logger = logging.getLogger('vmbackup.libvirtagent.'+VMname)
+        self.logger = logging.getLogger('borgdrone.libvirtdrone.'+VMname)
         self.logger.info('Working on virtual maschine '+VMname)
         libvirt.registerErrorHandler(f=self._libvirt_silence_error, ctx=None)
         try:
@@ -42,7 +42,7 @@ class libvirtagent:
             self.logger.error('found no virtual disks for machine')
             raise RuntimeError
         else:
-            self.logger.debug('libvirtagent found virtual disk sources: '+str(disks))
+            self.logger.debug('libvirtdrone found virtual disk sources: '+str(disks))
             return disks
 
     def shutdownVM(self, timeout):

@@ -3,7 +3,9 @@ from os import environ
 import logging
 from datetime import datetime
 
-logger = logging.getLogger('vmbackup.borgagent')
+# TODO: explore importing from borg (it's python as well)
+
+logger = logging.getLogger('borgdrone.borgdrone')
 
 # this is going to be run non-interactively, so make sure the backup runs
 # focus is on resilience
