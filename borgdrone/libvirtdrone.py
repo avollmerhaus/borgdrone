@@ -48,19 +48,21 @@ class libvirtdrone:
     def shutdownVM(self, timeout):
         # todo: make this private, only call from freeze
         # when some flag true and freeze fails
-        try:
-            self.VM.shutdownFlags(libvirt.VIR_DOMAIN_SHUTDOWN_GUEST_AGENT | libvirt.VIR_DOMAIN_SHUTDOWN_ACPI_POWER_BTN)
-        except libvirt.libvirtError as err:
-            self.logger.error('libvirt unable to shutdown VM:'+str(err))
-            raise RuntimeError
-        else:
-            while self.VM.state()[0] != libvirt.VIR_DOMAIN_SHUTOFF:
-                timeout -= 1
-                sleep(1)
-                if timeout is 0:
-                    self.logger.error('timeout while waiting to shutdown VM')
-                    raise RuntimeError
-                    break
+        
+        if not self.VM.state()[0] == libvirt.VIR_DOMAIN_SHUTOFF:
+            try:
+                self.VM.shutdownFlags(libvirt.VIR_DOMAIN_SHUTDOWN_GUEST_AGENT | libvirt.VIR_DOMAIN_SHUTDOWN_ACPI_POWER_BTN)
+            except libvirt.libvirtError as err:
+                self.logger.error('libvirt unable to shutdown VM:'+str(err))
+                raise RuntimeError
+            else:
+                while self.VM.state()[0] != libvirt.VIR_DOMAIN_SHUTOFF:
+                    timeout -= 1
+                    sleep(1)
+                    if timeout is 0:
+                        self.logger.error('timeout while waiting to shutdown VM')
+                        raise RuntimeError
+                        break
 
     def startVM(self):
         try:
