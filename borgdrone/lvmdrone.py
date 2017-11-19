@@ -2,7 +2,7 @@ import os
 from subprocess import check_call,CalledProcessError,DEVNULL
 import logging
 
-# Todo: use lvm via it's python bindings
+# Todo: use lvm via python bindings
 # https://git.fedorahosted.org/cgit/lvm2.git/tree/python
 
 logger = logging.getLogger('borgdrone.lvmdrone')
@@ -31,6 +31,6 @@ def removesnaps(snapshots):
         try:
             check_call(command, stdout=DEVNULL)
         except CalledProcessError as err:
-            logger.error('could not create lvm snapshot: '+str(err))
+            logger.error('could not remove lvm snapshot: '+str(err))
             raise RuntimeError
     logger.debug('lvmdrone removed snapshots: '+str(snapshots))

@@ -13,8 +13,8 @@ borgenv = environ
 borgenv['BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK'] = 'yes'
 borgenv['BORG_RELOCATED_REPO_ACCESS_IS_OK'] = 'yes'
 
-def borgcreate(repository, VMname, sourcepaths):
-    backupname = repository + '::{hostname}_' + VMname + '_' + datetime.now().strftime('%Y.%j-%H.%M')
+def borgcreate(repository, source_name, sourcepaths):
+    backupname = repository + '::{hostname}_' + source_name + '_' + datetime.now().strftime('%Y.%j-%H.%M')
     commandline = []
     commandline.append('/usr/bin/borg')
     commandline.append('create')
@@ -30,9 +30,9 @@ def borgcreate(repository, VMname, sourcepaths):
             logger.error('error running borg: '+str(err))
             raise RuntimeError
 
-def borgprune(VMname, repository):
+def borgprune(source_name, repository):
     #prune can't deal with ::{hostname}
-    pruneprefix = '{hostname}_' + VMname
+    pruneprefix = '{hostname}_' + source_name
     commandline = []
     commandline.append('/usr/bin/borg')
     commandline.append('prune')

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from borgdrone.libvirtdrone import libvirtdrone
+from borgdrone.lxcdrone import lxcdrone
 from borgdrone.lvmdrone import snapdisks,removesnaps
 from borgdrone.borgdrone import borgcreate, borgprune
 from os import remove
@@ -35,14 +36,37 @@ def vm_dump_and_prune(repository, VMname, shutdown):
         domxmlfile = virtualmachine.dumpXML()
         sourcepaths.append(domxmlfile)
         # call borg to do the backup
-        borgcreate(VMname=VMname, repository=repository, sourcepaths=sourcepaths)
+        borgcreate(source_name=VMname, repository=repository, sourcepaths=sourcepaths)
     finally:
         # clean up
         if snaps:
             removesnaps(snaps)
         if domxmlfile:
             remove(domxmlfile)
-        borgprune(VMname=VMname, repository=repository)
+        borgprune(source_name=VMname, repository=repository)
+
+def container_dump_and_prune(repository, containername):
+
+    repository = sub('/$', '', repository)
+    sourcepaths = []
+    snaps = []
+    disks = []
+
+    try:
+        container = lxcdrone(containername)
+        disks = container.diskfinder()
+        container.freeze()
+        snaps = snapdisks(disks)
+        container.thaw()
+        sourcepaths.extend(snaps)
+        sourcepaths.append(container.get_config)
+        borgcreate(source_name=containername, repository=repository, sourcepaths=sourcepaths)
+    finally:
+        container.thaw()
+        if snaps:
+            removesnaps(snaps)
+        borgprune(source_name=containername, repository=repository)
+
 
 parser = argparse.ArgumentParser(description='Opinionated wrapper to backup VMs or containers via Borg. At the moment we only support libvirt/kvm on LVM.\
 Containers and flat files may be supported sometime in the future. Example: backup.py --repo ssh:///user@borg.example.com/backuphdd/borg --type kvm --sources myVM --shutdown')
@@ -73,8 +97,19 @@ if args.syslog:
 
 failedSources = []
 if args.type[0] == 'lxc':
-    logger.warn('LXC is not implemented yet')
-elif args.type[0] == 'kvm':
+    if args.shutdown:
+        raise NotImplementedError
+    for source in args.sources:
+        try:
+            container_dump_and_prune(repository=args.repo[0], containername=source)
+        except RuntimeError:
+            logger.error('Backup or cleanup failed for container: '+source)
+            failedSources.append(source)
+    if failedSources:
+        logger.info('these sources failed: '+str(failedSources))
+    else:
+        logger.info('all sources backed up successfully')
+if args.type[0] == 'kvm':
     for source in args.sources:
         logger.debug('args say: repo: '+args.repo[0]+' source: '+source)
         try:
