@@ -27,10 +27,6 @@ def vm_dump_and_prune(repository, VMname, shutdown):
         else:
             virtualmachine.fsFreeze()
         snaps = snapdisks(disks)
-        if shutdown:
-            virtualmachine.startVM()
-        else:
-            virtualmachine.fsThaw()
         sourcepaths.extend(snaps)
         # prepare VM xml definition to be included in backup
         domxmlfile = virtualmachine.dumpXML()
@@ -38,6 +34,13 @@ def vm_dump_and_prune(repository, VMname, shutdown):
         # call borg to do the backup
         borgcreate(source_name=VMname, repository=repository, sourcepaths=sourcepaths)
     finally:
+        try:
+            if shutdown:
+                virtualmachine.startVM()
+            else:
+                virtualmachine.fsThaw()
+        except Exception:
+            logger.exception('failed to thaw or start VM')
         # clean up
         if snaps:
             removesnaps(snaps)
