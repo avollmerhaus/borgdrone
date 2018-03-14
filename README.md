@@ -1,6 +1,11 @@
 Backup VMs or containers via Borg
 ===
 
+# Disclaimer
+This Stuff is not safe to use without serious handholding.
+For example, in its current state, it fails horribly when trying to backup a VM that has an iso image inserted into it's virtual DVD drive.
+It needs a major rewrite.
+
 A little wrapper using borgbackup/borg with `--read-special` to backup LVM snapshots and VM metadata (like libvirt XML description) to a repository.
 
 This needs some work to be any good. It's not installable, fails to follow best practice
