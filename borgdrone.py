@@ -124,7 +124,7 @@ if __name__ == '__main__':
                     failedSources.append(source)
         if failedSources:
             logger.info('these sources failed: %s', str(failedSources))
-             exitcode = 1
+            exitcode = 1
         else:
             logger.info('all sources backed up successfully')
              exitcode = 0
