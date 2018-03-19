@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.5
 
 from borgdrone.libvirtdrone import libvirtdrone
 from borgdrone.lxcdrone import lxcdrone
@@ -127,7 +127,7 @@ if __name__ == '__main__':
             exitcode = 1
         else:
             logger.info('all sources backed up successfully')
-             exitcode = 0
+            exitcode = 0
     except Exception as err:
         logger.exception('something went wrong, quit.')
         exitcode = 2
