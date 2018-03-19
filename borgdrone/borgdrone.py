@@ -23,11 +23,11 @@ def borgcreate(repository, source_name, sourcepaths):
     commandline.append('lz4')
     commandline.append(backupname)
     commandline.extend(sourcepaths)
-    logger.debug('trying to call borg, commandline: '+str(commandline))
+    logger.debug('trying to call borg, commandline: %s', str(commandline))
     try:
         check_call(commandline, env=borgenv)
     except CalledProcessError as err:
-            logger.error('error running borg: '+str(err))
+            logger.error('error running borg: %s', str(err))
             raise RuntimeError
 
 def borgprune(source_name, repository):
@@ -46,9 +46,9 @@ def borgprune(source_name, repository):
     commandline.append('--keep-yearly=2')
     commandline.append('--prefix='+pruneprefix)
     commandline.append(repository)
-    logger.debug('trying to call borg, commandline: '+str(commandline))
+    logger.debug('trying to call borg, commandline: %s', str(commandline))
     try:
         check_call(commandline, env=borgenv)
     except CalledProcessError as err:
-        logger.error('error running borg: '+str(err))
+        logger.error('error running borg: %s', str(err))
         raise RuntimeError
