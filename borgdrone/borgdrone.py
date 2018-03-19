@@ -27,8 +27,8 @@ def borgcreate(repository, source_name, sourcepaths):
     try:
         check_call(commandline, env=borgenv)
     except CalledProcessError as err:
-            logger.error('error running borg: %s', str(err))
-            raise RuntimeError
+        logger.error('error running borg: %s', str(err))
+        raise RuntimeError
 
 def borgprune(source_name, repository):
     #prune can't deal with ::{hostname}

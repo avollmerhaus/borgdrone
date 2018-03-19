@@ -17,6 +17,7 @@ def vm_dump_and_prune(repository, VMname, shutdown):
     sourcepaths = []
     snaps = []
     domxmlfile = None
+    virtualmachine = None
 
     try:
         virtualmachine = libvirtdrone(VMname)
@@ -34,6 +35,8 @@ def vm_dump_and_prune(repository, VMname, shutdown):
         # call borg to do the backup
         borgcreate(source_name=VMname, repository=repository, sourcepaths=sourcepaths)
     finally:
+        # dirty hack, I really need to rewrite the whole workflow. use a context manager and move the whole ordeal
+        # into the libs, rethink the whole workflow
         if virtualmachine:
             try:
                 if shutdown:
