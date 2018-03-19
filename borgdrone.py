@@ -34,18 +34,19 @@ def vm_dump_and_prune(repository, VMname, shutdown):
         # call borg to do the backup
         borgcreate(source_name=VMname, repository=repository, sourcepaths=sourcepaths)
     finally:
-        try:
-            if shutdown:
-                virtualmachine.startVM()
-            else:
-                virtualmachine.fsThaw()
-            # clean up
-            if snaps:
-                removesnaps(snaps)
-            if domxmlfile:
-                remove(domxmlfile)
-        except Exception:
-            logger.exception('failed cleanup or thaw/start VM')
+        if virtualmachine:
+            try:
+                if shutdown:
+                    virtualmachine.startVM()
+                else:
+                    virtualmachine.fsThaw()
+                # clean up
+                if snaps:
+                    removesnaps(snaps)
+                if domxmlfile:
+                    remove(domxmlfile)
+            except Exception:
+                logger.exception('failed cleanup or thaw/start VM')
         borgprune(source_name=VMname, repository=repository)
 
 def container_dump_and_prune(repository, containername):

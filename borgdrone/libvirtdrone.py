@@ -22,10 +22,9 @@ class libvirtdrone:
             raise RuntimeError
         self.logger.debug('connected to libvirtd and selected VM')
 
-    def _libvirt_silence_error(self, err, something):
-        # Don't log libvirt errors: global error handler will do that
-        if err[3] != libvirt.VIR_ERR_ERROR:
-            self.logger.warning('Non-error from libvirt: %s', err[2])
+    def _libvirt_silence_error(self, userdata, err):
+        # https://stackoverflow.com/questions/45541725/avoiding-console-prints-by-libvirt-qemu-python-apis
+        pass
 
     def diskfinder(self):
         # return all disk backend paths contained within VM xml
