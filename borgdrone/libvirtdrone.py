@@ -22,7 +22,7 @@ class libvirtdrone:
             raise RuntimeError
         self.logger.debug('connected to libvirtd and selected VM')
 
-    def _libvirt_silence_error(self, userdata, err):
+    def _libvirt_silence_error(*args):
         # https://stackoverflow.com/questions/45541725/avoiding-console-prints-by-libvirt-qemu-python-apis
         pass
 
