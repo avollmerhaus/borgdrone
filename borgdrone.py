@@ -29,28 +29,22 @@ def vm_dump_and_prune(repository, VMname, shutdown):
             virtualmachine.fsFreeze()
         snaps = snapdisks(disks)
         sourcepaths.extend(snaps)
-        # prepare VM xml definition to be included in backup
         domxmlfile = virtualmachine.dumpXML()
         sourcepaths.append(domxmlfile)
+    finally:
+        if shutdown:
+            virtualmachine.startVM()
+        else:
+            virtualmachine.fsThaw()
+    try:
         # call borg to do the backup
         borgcreate(source_name=VMname, repository=repository, sourcepaths=sourcepaths)
     finally:
-        # dirty hack, I really need to rewrite the whole workflow. use a context manager and move the whole ordeal
-        # into the libs, rethink the whole workflow
-        if virtualmachine:
-            try:
-                if shutdown:
-                    virtualmachine.startVM()
-                else:
-                    virtualmachine.fsThaw()
-                # clean up
-                if snaps:
-                    removesnaps(snaps)
-                if domxmlfile:
-                    remove(domxmlfile)
-            except Exception:
-                logger.exception('failed cleanup or thaw/start VM')
-        borgprune(source_name=VMname, repository=repository)
+        if snaps:
+            removesnaps(snaps)
+        if domxmlfile:
+            remove(domxmlfile)
+    borgprune(source_name=VMname, repository=repository)
 
 def container_dump_and_prune(repository, containername):
 
