@@ -1,4 +1,4 @@
-from subprocess import check_call,CalledProcessError,DEVNULL
+from subprocess import check_call, CalledProcessError, DEVNULL
 from os import environ
 import logging
 from datetime import datetime
@@ -12,6 +12,7 @@ logger = logging.getLogger('borgdrone.borgdrone')
 borgenv = environ
 borgenv['BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK'] = 'yes'
 borgenv['BORG_RELOCATED_REPO_ACCESS_IS_OK'] = 'yes'
+
 
 def borgcreate(repository, source_name, sourcepaths):
     backupname = repository + '::{hostname}_' + source_name + '_' + datetime.now().strftime('%Y.%j-%H.%M')
@@ -30,21 +31,18 @@ def borgcreate(repository, source_name, sourcepaths):
         logger.error('error running borg: %s', str(err))
         raise RuntimeError
 
+
 def borgprune(source_name, repository):
-    #prune can't deal with ::{hostname}
+    # prune can't deal with ::{hostname}
     pruneprefix = '{hostname}_' + source_name
     commandline = []
     commandline.append('/usr/bin/borg')
     commandline.append('prune')
-    # one archive for every day of the week
-    commandline.append('--keep-daily=7')
-    # one for every week of the month
-    commandline.append('--keep-weekly=4')
-    # one for every month (-1 means all)
-    commandline.append('--keep-monthly=-1')
-    # for every year within the last 2 years
-    commandline.append('--keep-yearly=2')
-    commandline.append('--prefix='+pruneprefix)
+    # one archive for every day for the last 2 weeks ...
+    commandline.append('--keep-daily=14')
+    # ... and for every month for the past year
+    commandline.append('--keep-monthly=12')
+    commandline.append('--prefix=' + pruneprefix)
     commandline.append(repository)
     logger.debug('trying to call borg, commandline: %s', str(commandline))
     try:

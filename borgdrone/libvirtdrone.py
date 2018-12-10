@@ -4,6 +4,7 @@ from time import sleep
 from tempfile import NamedTemporaryFile
 import logging
 
+
 # Todo:
 # implement snapshot function that freezes, thaws and calls lvm or other snapshot providers automatically
 
@@ -11,7 +12,7 @@ class libvirtdrone:
 
     def __init__(self, VMname):
         # loggers are hierachical using foo.bar notation
-        self.logger = logging.getLogger('borgdrone.libvirtdrone.'+VMname)
+        self.logger = logging.getLogger('borgdrone.libvirtdrone.' + VMname)
         self.logger.info('Working on virtual maschine %s', VMname)
         libvirt.registerErrorHandler(f=self._libvirt_silence_error, ctx=None)
         try:
@@ -41,18 +42,19 @@ class libvirtdrone:
             self.logger.error('found no virtual disks for machine')
             raise RuntimeError
         else:
-            self.logger.debug('libvirtdrone found virtual disk sources: '+str(disks))
+            self.logger.debug('libvirtdrone found virtual disk sources: ' + str(disks))
             return disks
 
     def shutdownVM(self, timeout):
         # todo: make this private, only call from freeze
         # when some flag true and freeze fails
-        
+
         if not self.VM.state()[0] == libvirt.VIR_DOMAIN_SHUTOFF:
             try:
-                self.VM.shutdownFlags(libvirt.VIR_DOMAIN_SHUTDOWN_GUEST_AGENT | libvirt.VIR_DOMAIN_SHUTDOWN_ACPI_POWER_BTN)
+                self.VM.shutdownFlags(
+                    libvirt.VIR_DOMAIN_SHUTDOWN_GUEST_AGENT | libvirt.VIR_DOMAIN_SHUTDOWN_ACPI_POWER_BTN)
             except libvirt.libvirtError as err:
-                self.logger.error('libvirt unable to shutdown VM:'+str(err))
+                self.logger.error('libvirt unable to shutdown VM:' + str(err))
                 raise RuntimeError
             else:
                 while self.VM.state()[0] != libvirt.VIR_DOMAIN_SHUTOFF:
@@ -68,7 +70,7 @@ class libvirtdrone:
             self.VM.create()
             self.logger.debug('VM started')
         except libvirt.libvirtError as err:
-            self.logger.error('failed to start VM'+str(err))
+            self.logger.error('failed to start VM' + str(err))
             raise RuntimeError
 
     def fsFreeze(self):
@@ -79,7 +81,7 @@ class libvirtdrone:
             self.logger.debug('freezing FS...')
             self.VM.fsFreeze()
         except libvirt.libvirtError as err:
-            self.logger.error('failed to freeze FS '+str(err))
+            self.logger.error('failed to freeze FS ' + str(err))
             raise RuntimeError
         # catch specific qemu agent fail here
 
@@ -88,7 +90,7 @@ class libvirtdrone:
             self.logger.debug('thawing FS...')
             self.VM.fsThaw()
         except libvirt.libvirtError as err:
-            self.logger.error('failed to thaw FS'+str(err))
+            self.logger.error('failed to thaw FS' + str(err))
             raise RuntimeError
 
     def dumpXML(self):
@@ -96,5 +98,5 @@ class libvirtdrone:
         xmldump = NamedTemporaryFile(suffix='.xml', delete=False)
         xmldump.write(self.VM.XMLDesc(0).encode(encoding='utf-8'))
         xmldump.flush()
-        self.logger.debug('wrote VM XML file to'+xmldump.name)
+        self.logger.debug('wrote VM XML file to' + xmldump.name)
         return xmldump.name
